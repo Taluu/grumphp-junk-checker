@@ -1,0 +1,19 @@
+{
+    "name": "taluu/grumphp-junk-checker",
+    "description": "GrumPHP task to check for junk in code",
+
+    "license": "MIT",
+    "type": "library",
+
+    "authors": [
+        {
+            "name": "Baptiste Clavié",
+            "email": "clavie.b@gmail.com"
+        }
+    ],
+
+    "require": {
+        "php": ">= 7.1",
+        "phpro/grumphp": "^0.14"
+    }
+}
