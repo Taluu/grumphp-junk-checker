@@ -70,12 +70,23 @@ final class JunkChecker implements TaskInterface
             $path = $file->getPathname();
             $content = $file->getContents();
 
-            foreach ($config['junks'] as $junk) {
-                if (strpos($content, $junk) === false) {
-                    continue;
-                }
+            $tokens = array_filter(
+                token_get_all($content),
+                function ($token) {
+                    if (!is_array($token)) {
+                        return false;
+                    }
 
-                $errors[] = "- Junk {$junk} detected in {$path}.";
+                    return $token[0] === T_STRING;
+                }
+            );
+
+            foreach ($tokens as [, $value, $line]) {
+                foreach ($config['junks'] as $junk) {
+                    if ($value === $junk) {
+                        $errors[] = "- Junk {$junk} detected in {$path}, line {$line}.";
+                    }
+                }
             }
         }
 
