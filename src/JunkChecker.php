@@ -11,8 +11,17 @@ use GrumPHP\Task\Context\GitPreCommitContext;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+use function count;
+use function in_array;
+
 final class JunkChecker implements TaskInterface
 {
+    private const T_STRING = T_STRING;
+    private const T_FUNCTION = T_FUNCTION;
+    private const T_DOUBLE_COLON = T_DOUBLE_COLON;
+    private const T_OBJECT_OPERATOR = T_OBJECT_OPERATOR;
+    private const T_OPEN_PARENTHESIS = 20000;
+
     /** @var GrumPHP */
     private $grumPHP;
 
@@ -65,28 +74,77 @@ final class JunkChecker implements TaskInterface
 
         $errors = [];
 
+        $whitelist = [
+            self::T_STRING,
+            self::T_FUNCTION,
+            self::T_DOUBLE_COLON,
+            self::T_OBJECT_OPERATOR,
+        ];
+
+        $filter = function ($token) use ($whitelist) {
+            if (!is_array($token)) {
+                return $token === '(';
+            }
+
+            return in_array($token[0], $whitelist, true);
+        };
+
+        $map = function ($token) {
+            return $token === '('
+                ? [self::T_OPEN_PARENTHESIS, $token, null]
+                : $token
+            ;
+        };
+
         /** @var SplFileInfo $file */
         foreach ($files as $file) {
             $path = $file->getPathname();
             $content = $file->getContents();
 
-            $tokens = array_filter(
-                token_get_all($content),
-                function ($token) {
-                    if (!is_array($token)) {
-                        return false;
-                    }
-
-                    return $token[0] === T_STRING;
-                }
+            $tokens = array_map(
+                $map,
+                array_values(
+                    array_filter(
+                        token_get_all($content),
+                        $filter
+                    )
+                )
             );
 
-            foreach ($tokens as [, $value, $line]) {
-                foreach ($config['junks'] as $junk) {
-                    if ($value === $junk) {
-                        $errors[] = "- Junk {$junk} detected in {$path}, line {$line}.";
+            foreach ($tokens as $key => [$token, $value, $line]) {
+                if ($token !== self::T_STRING) {
+                    continue;
+                }
+
+                if (!in_array($value, $config['junks'])) {
+                    continue;
+                }
+
+                if (!isset($tokens[$key + 1])) {
+                    continue;
+                }
+
+                if ($tokens[$key + 1][0] !== self::T_OPEN_PARENTHESIS) {
+                    continue;
+                }
+
+                if (isset($tokens[$key - 1])) {
+                    // is it a declaration ? If it is, no interests...
+                    if ($tokens[$key - 1][0] === self::T_FUNCTION) {
+                        continue;
+                    }
+
+                    // is it a method call ? We can allow method call...
+                    if ($tokens[$key - 1][0] === self::T_OBJECT_OPERATOR) {
+                        continue;
+                    }
+
+                    if ($tokens[$key - 1][0] === self::T_DOUBLE_COLON) {
+                        continue;
                     }
                 }
+
+                $errors[] = "- Junk detected in {$path}, line {$line}.";
             }
         }
 
