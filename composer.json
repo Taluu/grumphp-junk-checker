@@ -12,6 +12,12 @@
         }
     ],
 
+    "autoload": {
+        "psr-4": {
+            "GrumPHPJunkChecker\\": "src/"
+        }
+    },
+
     "require": {
         "php": ">= 7.1",
         "ext-tokenizer": "*",
