@@ -1,7 +1,7 @@
 Junk-Checker
 ============
 A [GrumPHP](https://github.com/phpro/grumphp) extension to check you're not
-committing junk in your commits.
+adding junks in your commits.
 
 Configuration
 -------------
