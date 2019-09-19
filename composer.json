@@ -22,6 +22,6 @@
         "php": ">= 7.1",
         "ext-tokenizer": "*",
 
-        "phpro/grumphp": "^0.14"
+        "phpro/grumphp": "^0.14 || ^0.15 || ^0.16"
     }
 }
