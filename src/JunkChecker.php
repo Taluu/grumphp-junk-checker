@@ -3,7 +3,7 @@ namespace GrumPHPJunkChecker;
 
 use GrumPHP\Runner\TaskResult;
 use GrumPHP\Configuration\GrumPHP;
-
+use GrumPHP\Runner\TaskResultInterface;
 use GrumPHP\Task\TaskInterface;
 use GrumPHP\Task\Context\ContextInterface;
 use GrumPHP\Task\Context\GitPreCommitContext;
@@ -30,18 +30,18 @@ final class JunkChecker implements TaskInterface
         $this->grumPHP = $grumPHP;
     }
 
-    public function getName()
+    public function getName(): string
     {
         return 'junk_checker';
     }
 
-    public function getConfiguration()
+    public function getConfiguration(): array
     {
         $configured = $this->grumPHP->getTaskConfiguration($this->getName());
         return $this->getConfigurableOptions()->resolve($configured);
     }
 
-    public function getConfigurableOptions()
+    public function getConfigurableOptions(): OptionsResolver
     {
         $resolver = new OptionsResolver;
 
@@ -54,12 +54,12 @@ final class JunkChecker implements TaskInterface
         return $resolver;
     }
 
-    public function canRunInContext(ContextInterface $context)
+    public function canRunInContext(ContextInterface $context): bool
     {
         return $context instanceof GitPreCommitContext;
     }
 
-    public function run(ContextInterface $context)
+    public function run(ContextInterface $context): TaskResultInterface
     {
         $config = $this->getConfiguration();
         $files = $context->getFiles()->extensions($config['triggered_by']);
