@@ -1,13 +1,17 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace GrumPHPJunkChecker;
 
 use GrumPHP\Runner\TaskResult;
 use GrumPHP\Configuration\GrumPHP;
 use GrumPHP\Runner\TaskResultInterface;
+use GrumPHP\Task\Config\EmptyTaskConfig;
 use GrumPHP\Task\TaskInterface;
+use GrumPHP\Task\Config\TaskConfigInterface;
 use GrumPHP\Task\Context\ContextInterface;
 use GrumPHP\Task\Context\GitPreCommitContext;
-
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -22,12 +26,12 @@ final class JunkChecker implements TaskInterface
     private const T_OBJECT_OPERATOR = T_OBJECT_OPERATOR;
     private const T_OPEN_PARENTHESIS = 20000;
 
-    /** @var GrumPHP */
-    private $grumPHP;
+    /** @var TaskConfigInterface */
+    private $config;
 
-    public function __construct(GrumPHP $grumPHP)
+    public function __construct()
     {
-        $this->grumPHP = $grumPHP;
+        $this->config = new EmptyTaskConfig();
     }
 
     public function getName(): string
@@ -35,15 +39,14 @@ final class JunkChecker implements TaskInterface
         return 'junk_checker';
     }
 
-    public function getConfiguration(): array
+    public function getConfig(): TaskConfigInterface
     {
-        $configured = $this->grumPHP->getTaskConfiguration($this->getName());
-        return $this->getConfigurableOptions()->resolve($configured);
+        return $this->config;
     }
 
-    public function getConfigurableOptions(): OptionsResolver
+    public static function getConfigurableOptions(): OptionsResolver
     {
-        $resolver = new OptionsResolver;
+        $resolver = new OptionsResolver();
 
         $resolver->setDefault('triggered_by', ['php']);
         $resolver->setDefault('junks', []);
@@ -54,6 +57,14 @@ final class JunkChecker implements TaskInterface
         return $resolver;
     }
 
+    public function withConfig(TaskConfigInterface $config): TaskInterface
+    {
+        $new = clone $this;
+        $new->config = $config;
+
+        return $new;
+    }
+
     public function canRunInContext(ContextInterface $context): bool
     {
         return $context instanceof GitPreCommitContext;
@@ -61,7 +72,7 @@ final class JunkChecker implements TaskInterface
 
     public function run(ContextInterface $context): TaskResultInterface
     {
-        $config = $this->getConfiguration();
+        $config = $this->config->getOptions();
         $files = $context->getFiles()->extensions($config['triggered_by']);
 
         if (count($files) === 0) {
@@ -116,7 +127,7 @@ final class JunkChecker implements TaskInterface
                     continue;
                 }
 
-                if (!in_array($value, $config['junks'])) {
+                if (!in_array($value, $config['junks'], true)) {
                     continue;
                 }
 
