@@ -1,0 +1,15 @@
+name: Unit Tests
+on: [pull_request]
+
+jobs:
+    phpunit:
+        name: PHPUnit
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@master
+
+            - name: Install dependencies
+              run: composer install --prefer-dist --no-progress --no-suggest
+
+            - name: Launch PHPUnit
+              run: vendor/bin/phpunit --testdox
