@@ -10,7 +10,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 final class ExtensionLoader implements ExtensionInterface
 {
-    public function load(ContainerBuilder $container)
+    public function load(ContainerBuilder $container): void
     {
         $definition = $container->register('task.junk_checker', JunkChecker::class);
 

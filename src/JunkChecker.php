@@ -72,6 +72,7 @@ final class JunkChecker implements TaskInterface
 
     public function run(ContextInterface $context): TaskResultInterface
     {
+        /** @var array{triggered_by: list<string>, junks: list<string>} $config */
         $config = $this->config->getOptions();
         $files = $context->getFiles()->extensions($config['triggered_by']);
 
@@ -92,20 +93,29 @@ final class JunkChecker implements TaskInterface
             self::T_OBJECT_OPERATOR,
         ];
 
-        $filter = function ($token) use ($whitelist) {
-            if (!is_array($token)) {
-                return $token === '(';
-            }
+        $filter =
+            /** @psalm-param string|array{0:int, 1:string, 2:int} $token */
+            static function ($token) use ($whitelist): bool {
+                if (!is_array($token)) {
+                    return $token === '(';
+                }
 
-            return in_array($token[0], $whitelist, true);
-        };
+                return in_array($token[0], $whitelist, true);
+            };
 
-        $map = function ($token) {
-            return $token === '('
-                ? [self::T_OPEN_PARENTHESIS, $token, null]
-                : $token
-            ;
-        };
+        $map =
+            /**
+             * @psalm-param string|array{0:int, 1:string, 2:int} $token
+             * @psalm-return array{0:int, 1:string, 2:?int}
+             */
+            static function ($token) {
+                assert(is_array($token) || $token === '(');
+
+                return $token === '('
+                    ? [self::T_OPEN_PARENTHESIS, $token, null]
+                    : $token
+                ;
+            };
 
         /** @var SplFileInfo $file */
         foreach ($files as $file) {
