@@ -13,8 +13,6 @@ final class ExtensionLoader implements ExtensionInterface
     public function load(ContainerBuilder $container): void
     {
         $definition = $container->register('task.junk_checker', JunkChecker::class);
-
-        $definition->addArgument(new Reference('config'));
         $definition->addTag('grumphp.task', ['config' => 'junk_checker']);
     }
 }
