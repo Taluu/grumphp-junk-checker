@@ -16,6 +16,7 @@ use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 use function count;
+use function is_array;
 use function in_array;
 
 final class JunkChecker implements TaskInterface
