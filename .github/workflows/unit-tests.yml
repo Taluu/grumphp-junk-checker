@@ -8,8 +8,7 @@ jobs:
         steps:
             - uses: actions/checkout@master
 
-            - name: Install dependencies
-              run: composer install --prefer-dist --no-progress --no-suggest
-
-            - name: Launch PHPUnit
-              run: vendor/bin/phpunit --testdox
+            - name: Phpunit
+              uses: docker://jakzal/phpqa:latest
+              with:
+                  args: phpunit --testdox
