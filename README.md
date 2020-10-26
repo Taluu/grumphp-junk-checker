@@ -8,7 +8,7 @@ Configuration
 You just have to add in your grumphp config file the following:
 
 ```yaml
-parameters:
+grumphp:
     tasks:
         junk_checker:
             junks: [var_dump, dump]
